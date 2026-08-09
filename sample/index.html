@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReportViewer 基本サンプル</title>
+  <link rel="stylesheet" href="../src/report-viewer.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #f8f9fa;
+    }
+
+    .demo {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .demo h1 {
+      margin: 0 0 12px;
+      color: #202124;
+      font: 20px Arial, sans-serif;
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 8px; }
+      .demo h1 { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="demo">
+    <h1>ReportViewer</h1>
+    <div id="report"></div>
+  </main>
+
+  <script src="../src/report-viewer.js"></script>
+  <script src="./sample-schema.js"></script>
+  <script src="./sample-data.js"></script>
+  <script src="./sample-distribution.js"></script>
+  <script>
+    var viewer = new ReportViewer({
+      target: '#report',
+      schema: window.sampleReportSchema,
+      data: window.sampleReportData,
+      pageInfo: {
+        offset: 0,
+        limit: 200,
+        total: 12430
+      },
+      distribution: window.sampleReportDistribution
+    });
+
+    viewer.on('execute', function () {
+      alert('実行イベントが発火しました。');
+    });
+
+    viewer.on('pagechange', function (page) {
+      console.log('ページ取得要求:', page);
+      // アプリ側で page.offset / page.limit を使ってバックエンドから取得し、
+      // viewer.setData(rows) と viewer.setPageInfo(...) を呼び出します。
+    });
+
+    viewer.on('export', function (event) {
+      console.log('出力要求:', event.format);
+      // event.format は 'csv' / 'excel' / 'clipboard'。実処理はアプリ側で実装します。
+    });
+  </script>
+</body>
+</html>
