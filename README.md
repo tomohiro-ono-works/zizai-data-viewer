@@ -236,6 +236,25 @@ viewer.on('pagechange', function (event) {
 
 返り値: `ReportViewer` インスタンス。
 
+### `destroy()`
+
+インスタンスの後始末を行います。SPA遷移や画面破棄時など、`ReportViewer` を使い終えたタイミングで呼び出してください。
+
+```javascript
+viewer.destroy();
+```
+
+返り値: `undefined`
+
+`destroy()` は次を行います。
+
+- `document` に登録した内部リスナー（フィルターやダウンロードメニューの外側クリック検知など）をすべて解除
+- `document.body` 直下に追加したダウンロードメニューを削除
+- インスタンスが所有するDOM（`target` 配下の内容）を取り除く
+- `on()` で登録済みのイベントハンドラをすべて解放
+
+`destroy()` は複数回呼び出しても安全（冪等）です。同じ `target` に対して `destroy()` 後に再度 `new ReportViewer(...)` を実行すると、リスナーやダウンロードメニューが重複せず正常に動作します。
+
 ## イベント
 
 ### `execute`
