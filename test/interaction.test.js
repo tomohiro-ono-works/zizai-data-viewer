@@ -25,7 +25,7 @@
     });
     runner.equal(target.querySelectorAll('.rv-grid thead .rv-column-resizer').length, 2);
     viewer._activateTab('columns');
-    runner.equal(target.querySelectorAll('.rv-columns-grid thead .rv-column-resizer').length, 3);
+    runner.equal(target.querySelectorAll('.rv-columns-grid thead .rv-column-resizer').length, 4);
   });
 
   runner.test('帳票ヘッダーはクリックで編集しEnterで確定できる', function () {

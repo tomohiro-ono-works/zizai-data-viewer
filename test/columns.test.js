@@ -25,9 +25,9 @@
       data: []
     });
     viewer._activateTab('columns');
-    runner.equal(target.querySelectorAll('.rv-columns-grid thead th').length, 3);
+    runner.equal(target.querySelectorAll('.rv-columns-grid thead th').length, 4);
     runner.equal(target.querySelectorAll('.rv-columns-grid tbody tr').length, 2);
-    runner.equal(target.querySelectorAll('.rv-columns__filter-button').length, 3);
+    runner.equal(target.querySelectorAll('.rv-columns__filter-button').length, 4);
     runner.equal(getComputedStyle(target.querySelector('.rv-columns-grid thead th')).position, 'sticky');
   });
 }());

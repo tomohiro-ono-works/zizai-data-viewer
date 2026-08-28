@@ -11,7 +11,7 @@ HTML、CSS、標準JavaScriptだけで動作します。Node.js、npm、ビル�
 - 閲覧専用のデータ表表示
 - 固定ヘッダー、行番号、列幅変更
 - ソート、型別フィルター
-- カラム名・データ型の編集
+- カラム名・説明・データ型の編集
 - JSONによるカラム定義編集
 - 集計済み分布データの表示
 - 前後ページ移動UIと `pagechange` イベント通知
@@ -80,6 +80,40 @@ var viewer = new ReportViewer({
 
 返り値: `ReportViewer` インスタンス。
 
+## features（機能の個別制御）
+
+コンストラクタの `features` オプションで、`report`（帳票タブ）・`columns`（カラム設定タブ）・`json`（JSON編集タブ）・`distribution`（分布タブ）・`execute`（実行ボタン）・`export`（ダウンロード操作）を個別に有効/無効にできます。
+
+```javascript
+var viewer = new ReportViewer({
+  target: '#report',
+  schema: schema,
+  data: rows,
+  features: {
+    json: false,
+    distribution: false,
+    execute: false,
+    export: false
+  }
+});
+```
+
+- `features` を省略した場合、またはキーを省略した場合はそのキーが有効（`true`）になります。既存の4タブ・実行・ダウンロードという挙動をそのまま維持します。
+- 無効にした機能は、対応するtab／actionのDOM、`document`へのリスナー、タイマー、bodyメニューを一切生成しません。
+- `report`・`columns`・`export`のすべてが無効な場合は、フィルターやダウンロードメニューの外側クリック検知用の`document`リスナー自体を登録しません。
+- ダウンロードメニューなど`export`が使用するpopupは、`document.body`直下ではなく`ReportViewer`の`target`（root要素）配下に配置されます。`destroy()`時にrootのDOMごと解放されます。
+
+`activeTab`オプションで初期表示タブを指定できます。省略時は`'report'`です。指定したタブが無効な場合は、有効なタブのうち最初のものが自動的に選択されます。
+
+```javascript
+var viewer = new ReportViewer({
+  target: '#report',
+  schema: schema,
+  data: rows,
+  activeTab: 'columns'
+});
+```
+
 ## カラム定義
 
 対応する `type` は次の8種類です。
@@ -96,6 +130,24 @@ var viewer = new ReportViewer({
 | `timestamp` | `string` / `Date` |
 
 `null` はカラム型ではなくセル値として扱います。
+
+`origin_name` / `new_name` / `description` / `ziz_datatype` を持つカラム定義も、その値を正規化せずに保持します。
+
+```javascript
+{
+  columns: [{
+    origin_name: 'payload',
+    new_name: '',
+    description: 'バイナリ値',
+    ziz_datatype: 'BYTES'
+  }]
+}
+```
+
+- 空の `new_name` は保存値のまま維持し、表示時だけ `origin_name` を代替ラベルとして使います。
+- `ziz_datatype` は `BYTES`、`TIME`、`INTERVAL`、`ARRAY<T>`、`STRUCT<...>` など任意の文字列を保持します。上表にない型は、表示・ソート・フィルターで文字列型と同じ扱いになります。
+- 表示名と任意の説明は Enter またはフォーカス移動で確定し、Escape で編集中の値を破棄します。データ型は選択変更時に確定します。
+- JSON編集内容は「適用」を押したときだけSchemaへ反映します。不正なJSONは入力欄に残り、エラーを表示して、修正内容を適用するまでSchema依存タブを無効にします。
 
 ## 公開API
 
@@ -249,8 +301,8 @@ viewer.destroy();
 `destroy()` は次を行います。
 
 - `document` に登録した内部リスナー（フィルターやダウンロードメニューの外側クリック検知など）をすべて解除
-- `document.body` 直下に追加したダウンロードメニューを削除
-- インスタンスが所有するDOM（`target` 配下の内容）を取り除く
+- `target`（root要素）配下に配置したダウンロードメニューを含む、インスタンスが所有するDOM（`target` 配下の内容）を取り除く
+- ダウンロードメニューの表示/非表示タイマーを解除
 - `on()` で登録済みのイベントハンドラをすべて解放
 
 `destroy()` は複数回呼び出しても安全（冪等）です。同じ `target` に対して `destroy()` 後に再度 `new ReportViewer(...)` を実行すると、リスナーやダウンロードメニューが重複せず正常に動作します。
@@ -339,7 +391,7 @@ viewer.on('export', function (event) {
 
 ### `schemachange`
 
-カラム名やデータ型が変更されたときに発火します。
+カラム名、説明、またはデータ型が確定したときに発火します。
 
 ```javascript
 viewer.on('schemachange', function (schema) {
